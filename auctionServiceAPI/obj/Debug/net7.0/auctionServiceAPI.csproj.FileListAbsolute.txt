@@ -64,3 +64,16 @@ C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctio
 C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\obj\Debug\net7.0\auctionServiceAPI.pdb
 C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\obj\Debug\net7.0\auctionServiceAPI.genruntimeconfig.cache
 C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\obj\Debug\net7.0\ref\auctionServiceAPI.dll
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\AWSSDK.Core.dll
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\AWSSDK.SecurityToken.dll
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\DnsClient.dll
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\MongoDB.Bson.dll
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\MongoDB.Driver.dll
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\MongoDB.Driver.Core.dll
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\MongoDB.Libmongocrypt.dll
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\SharpCompress.dll
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\Snappier.dll
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\ZstdSharp.dll
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\runtimes\linux\native\libmongocrypt.so
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\runtimes\osx\native\libmongocrypt.dylib
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\runtimes\win\native\mongocrypt.dll
