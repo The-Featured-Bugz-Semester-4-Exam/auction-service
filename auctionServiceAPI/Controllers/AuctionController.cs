@@ -9,9 +9,12 @@ public class AuctionController : ControllerBase
 
     private readonly ILogger<AuctionController> _logger;
 
-    public AuctionController(ILogger<AuctionController> logger)
+    public AuctionController(ILogger<AuctionController> logger,IConfiguration configuration)
     {
+        //Hej med dig
         _logger = logger;
     }
+   
+    
 
 }
