@@ -13,8 +13,10 @@ public class AuctionController : ControllerBase
 
     public AuctionController(ILogger<AuctionController> logger,IConfiguration configuration)
     {
-        mongodbConnection = configuration["mogodbConnection"] ?? string.Empty;
+        //MongodbConnection
+        mongodbConnection = configuration["mongodbConnection"] ?? string.Empty;
         //Hej med dig
+
         _logger = logger;
     }
     public void PostAuction(Item item){
