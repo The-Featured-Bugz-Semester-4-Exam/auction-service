@@ -1,6 +1,8 @@
 #/usr/bin/bash
-export connectionstring="...."
-export database="..."
-export collection="..."
-
-echo $database
+export server="localhost"
+export port="27017"
+export auctionActiveCol="auctionActiveCol"
+export auctionDoneCol="auctionDoneCol"
+export database="Auction"
+echo $database $auctionActiveCol
+dotnet run server="$server" port="$port" auctionActiveCol="$auctionActiveCol" auctionDoneCol="$auctionDoneCol" database="$database"

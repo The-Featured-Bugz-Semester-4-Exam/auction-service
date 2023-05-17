@@ -23,41 +23,46 @@ public class AuctionController : ControllerBase
     private IConnection connection;
     private IModel channel;
 
+    private string auctionActiveCol = string.Empty;
+    private string auctionDoneCol = string.Empty;
 
-    public AuctionController(ILogger<AuctionController> logger,IConfiguration configuration)
+    public AuctionController(ILogger<AuctionController> logger, IConfiguration configuration)
     {
-       /* //MongodbConnection
-        mongodbConnection = configuration["mongodbConnection"] ?? string.Empty;
-        //Hej med dig*/
-        var mongoSettings = configuration.GetSection("MongoDBSettings");
-        //var connectionString = $"mongodb://{mongoSettings["Server"]}:{mongoSettings["Port"]}";
-        var connectionString = $"mongodb://localhost:27017/";
-        logger.LogInformation(connectionString + "  ");
+        var server = configuration["server"] ?? string.Empty;
+        var port = configuration["port"] ?? string.Empty;
+        var database = configuration["database"] ?? string.Empty;
+        auctionActiveCol = configuration["auctionActiveCol"] ?? string.Empty;
+        auctionDoneCol = configuration["auctionDoneCol"] ?? string.Empty;
+
+
+        var connectionString = $"mongodb://{server}:{port}/";
+        logger.LogInformation(connectionString + "  POP");
+        logger.LogInformation("Hej");
         var client = new MongoClient(connectionString);
-        //_database = client.GetDatabase(mongoSettings["Database"]);
-        _database = client.GetDatabase("Auction");
+        _database = client.GetDatabase(database);
         _logger = logger;
     }
-    [HttpPost("CreatAuction")]
-    public void PostAuction(Item item){
-        
-    var collection = _database.GetCollection<Auction>("AuctionCollection");
-    var highestAuction = collection.Find(_ => true)
-        .SortByDescending(a => a.AuctionID)
-        .FirstOrDefault();
-
-    int nextAuctionId = 1;
-    if (highestAuction != null)
+    [HttpPost("CreateAuction")]
+    public void PostAuction(Item item)
     {
-        nextAuctionId = highestAuction.AuctionID + 1;
-    // Opret den nye auktion med det næste auktions-ID
-    Auction auction = new Auction(nextAuctionId, item, -1);
 
-    // Indsæt auktionen i MongoDB
-    _database.GetCollection<Auction>("AuctionCollection").InsertOne(auction);
+        var collection = _database.GetCollection<Auction>(auctionActiveCol);
+        var highestAuction = collection.Find(_ => true)
+            .SortByDescending(a => a.AuctionID)
+            .FirstOrDefault();
+
+        int nextAuctionId = 1;
+        if (highestAuction != null)
+        {
+            nextAuctionId = highestAuction.AuctionID + 1;
+        }
+        // Opret den nye auktion med det næste auktions-ID
+        Auction auction = new Auction(nextAuctionId, item, -1);
+        // Indsæt auktionen i MongoDB
+        _database.GetCollection<Auction>(auctionActiveCol).InsertOne(auction);
+
     }
 
-    }
 
 
 
@@ -65,26 +70,28 @@ public class AuctionController : ControllerBase
 
 
 
+    [HttpGet("GetAuctionsActive")]
+    public List<Auction> GetAllAuctionActive()
+    {
+        var collection = _database.GetCollection<Auction>(auctionActiveCol);
 
-   [HttpGet("GetAuctionsActive")]
-    public List<Auction> GetAllAuctionActive(){
-        var collection = _database.GetCollection<Auction>("AuctionCollection");
+        // Udfør forespørgsel for at hente aktive auktioner baseret på dine kriterier
+        var activeAuctions = collection.Find(_ => true).ToList();
 
-    // Udfør forespørgsel for at hente aktive auktioner baseret på dine kriterier
-    var activeAuctions = collection.Find(_ => true).ToList();
-   
-    return activeAuctions;
+        return activeAuctions;
     }
     [HttpGet("GetAuctionActive/{auctionId}")]
-    public Auction GetAuctionActive(int auctionId){
-        var collection = _database.GetCollection<Auction>("AuctionCollection");
-        
+    public Auction GetAuctionActive(int auctionId)
+    {
+        var collection = _database.GetCollection<Auction>(auctionActiveCol);
+
         Auction auction = collection.Find(x => x.AuctionID == auctionId).FirstOrDefault();
         return auction;
     }
     [HttpPost("PostAuctionBid/{auctionBid}")]
-    public IActionResult PostAuctionBid(AuctionBid auctionBid){
-            try
+    public IActionResult PostAuctionBid(AuctionBid auctionBid)
+    {
+        try
         {
             _logger.LogInformation("WorkshopRequest oprettet" + StatusCodes.Status200OK,    // Logger en information om, at WorkshopRequest er oprettet, med HTTP status 200 OK og tidspunktet.
             DateTime.UtcNow.ToLongTimeString());
@@ -93,7 +100,7 @@ public class AuctionController : ControllerBase
             channel.ExchangeDeclare(exchange: "topic_logs", ExchangeType.Topic);
             string message = JsonConvert.SerializeObject(auctionBid);    // Konverterer WorkshopRequest til en JSON-streng.
             var body = Encoding.UTF8.GetBytes(message);    // Konverterer JSON-strengen til en byte-array.
-        
+
             // ServiceType datatype String skal være "Repair" eller "Service" !!!
             channel.BasicPublish(exchange: "topic_logs",
                                  // Sender beskeden til køen, der passer til ServiceType, som kan være "Repair" eller "Service".
