@@ -7,6 +7,7 @@ using Newtonsoft.Json;
 using System.Text;
 namespace auctionServiceAPI.Controllers;
 
+
 [ApiController]
 [Route("[controller]")]
 public class AuctionController : ControllerBase
@@ -37,16 +38,33 @@ public class AuctionController : ControllerBase
         _database = client.GetDatabase("Auction");
         _logger = logger;
     }
-    [HttpPost]
+    [HttpPost("CreatAuction")]
     public void PostAuction(Item item){
         
-        Auction auction = new Auction(99,item,-1);
+    var collection = _database.GetCollection<Auction>("AuctionCollection");
+    var highestAuction = collection.Find(_ => true)
+        .SortByDescending(a => a.AuctionID)
+        .FirstOrDefault();
 
+    int nextAuctionId = 1;
+    if (highestAuction != null)
+    {
+        nextAuctionId = highestAuction.AuctionID + 1;
+    // Opret den nye auktion med det næste auktions-ID
+    Auction auction = new Auction(nextAuctionId, item, -1);
 
-
-
-        _database.GetCollection<Auction>("AuctionCollection").InsertOne(auction);
+    // Indsæt auktionen i MongoDB
+    _database.GetCollection<Auction>("AuctionCollection").InsertOne(auction);
     }
+
+    }
+
+
+
+
+
+
+
 
    [HttpGet("GetAuctionsActive")]
     public List<Auction> GetAllAuctionActive(){
@@ -57,9 +75,6 @@ public class AuctionController : ControllerBase
    
     return activeAuctions;
     }
-
-
-    
     [HttpGet("GetAuctionActive/{auctionId}")]
     public Auction GetAuctionActive(int auctionId){
         var collection = _database.GetCollection<Auction>("AuctionCollection");
