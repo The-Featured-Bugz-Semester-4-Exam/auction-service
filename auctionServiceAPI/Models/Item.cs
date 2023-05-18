@@ -1,5 +1,5 @@
 using MongoDB.Bson.Serialization;
-
+namespace auctionServiceAPI.Models;
 public class Item
 
 {

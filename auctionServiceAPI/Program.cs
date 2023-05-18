@@ -1,5 +1,14 @@
+using System.Timers;
+using auctionServiceAPI.Controllers;
+using auctionServiceAPI.Models;
 var builder = WebApplication.CreateBuilder(args);
 
+
+
+
+
+var timerTick = new TimerTick();
+timerTick.Start();
 // Add services to the container.
 
 builder.Services.AddControllers();

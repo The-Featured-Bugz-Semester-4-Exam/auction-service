@@ -1,3 +1,5 @@
+namespace auctionServiceAPI.Models;
+
 public class AuctionBid
 {
     public int AuctionBidID {get; set;}

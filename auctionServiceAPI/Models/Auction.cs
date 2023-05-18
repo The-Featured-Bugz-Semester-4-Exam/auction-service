@@ -1,7 +1,7 @@
 using MongoDB.Bson;
 using MongoDB.Driver;
 using MongoDB.Bson.Serialization.Attributes;
-
+namespace auctionServiceAPI.Models;
 public class Auction
 {
     [BsonId]

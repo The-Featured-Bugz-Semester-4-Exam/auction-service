@@ -10,12 +10,9 @@
     <Copyright>Gutterne</Copyright>
 
     <AssemblyVersion>1.0.1.1</AssemblyVersion>
-    <FileVersion>1.0.1.1</FileVersion>
-    <InformationalVersion>1.0.0</InformationalVersion>
-    <Description>
-      1.0.0 Updated with semantic versioning
-      0.9.0 Dockerfile Service Added to App
-    </Description>
+    <Company> The Featured Bugz </Company>
+    <FileVersion> 0.1.2 </FileVersion>
+    <Description>TimerTick lavet, dog mangler api til kommunikation til worker.</Description>
   </PropertyGroup>
 
   <ItemGroup>
