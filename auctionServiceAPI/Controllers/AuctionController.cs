@@ -34,14 +34,18 @@ public class AuctionController : ControllerBase
         var database = configuration["database"] ?? string.Empty;
         auctionActiveCol = configuration["auctionActiveCol"] ?? string.Empty;
         auctionDoneCol = configuration["auctionDoneCol"] ?? string.Empty;
-
-
         var connectionString = $"mongodb://{server}:{port}/";
-        logger.LogInformation(connectionString + "  POP");
-        logger.LogInformation("Hej");
+
         var client = new MongoClient(connectionString);
         _database = client.GetDatabase(database);
+
         _logger = logger;
+
+        var hostName = System.Net.Dns.GetHostName();
+        var ips = System.Net.Dns.GetHostAddresses(hostName);
+        var _ipaddr = ips.First().MapToIPv4().ToString();
+        _logger.LogInformation(1, $"Taxabooking responding from {_ipaddr}");
+
     }
     [HttpPost("CreateAuction")]
     public void PostAuction(Item item)
@@ -120,5 +124,32 @@ public class AuctionController : ControllerBase
 
             return null;
         }
+    }
+    [HttpPost("AuctionDone")]
+    public IActionResult AuctionDone()
+    {
+        var collection = _database.GetCollection<Auction>("AuctionCollection");
+        var completedCollection = _database.GetCollection<Auction>("CompletedAuctionCollection");
+
+        var now = DateTime.Now;
+
+        var filter = Builders<Auction>.Filter.Where(a => a.Item.ItemEndDate <= now);
+        var expiredAuctions = collection.Find(_ => true).ToList();
+        _logger.LogInformation("expiredAuctions count: " + expiredAuctions.Count);
+        foreach (var auction in expiredAuctions)
+        {
+            if (auction.Item.ItemEndDate.Ticks <= now.Ticks)
+            {
+
+                // Flyt auktionen til "CompletedAuctionCollection"
+                completedCollection.InsertOne(auction);
+
+                // Slet auktionen fra "AuctionCollection"
+                collection.DeleteOne(a => a.AuctionID == auction.AuctionID);
+            }
+            _logger.LogInformation("auction found EndDate: " + auction.Item.ItemEndDate.ToString() + " DatetimeNow: " + now + "  " + (auction.Item.ItemEndDate.Ticks <= now.Ticks));
+        }
+
+        return Ok();
     }
 }
