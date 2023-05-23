@@ -28,7 +28,7 @@ public class AuctionController : ControllerBase
 
     public AuctionController(ILogger<AuctionController> logger, IConfiguration configuration)
     {
-        redisService = new RedisService(configuration);
+       // redisService = new RedisService(configuration);
 
         _logger = logger;
 
@@ -42,27 +42,27 @@ public class AuctionController : ControllerBase
         channel = connection.CreateModel();
 
 
-    }/*
+    }
     //[Authorize]
-    [HttpPost("PostAuction")]
-    public async Task<IActionResult> PostAuction([FromBody] Item item){
-
-        Auction
-        redisService.AddAuctionWithCondition(item.ItemID,item.ItemStartprice,item.ItemEndDate);
-
-
-    }*/
+    [HttpPost("PostAuction/{itemToAuctionList}")]
+    public async Task<IActionResult> PostAuction([FromBody] ItemToAuction[]  itemToAuctions){
+        _logger.LogInformation("PostAuction");
 
 
 
+        for (int i = 0; i < itemToAuctions.Length; i++)
+        {
+            //Auction
+            redisService.AddAuctionWithCondition(itemToAuctions[i].ItemID,itemToAuctions[i].ItemStartPrice,itemToAuctions[i].ItemEndDate);
+        }
+        return null;
+    }
 
 
+  
 
 
-
-
-
-    [Authorize]
+    //[Authorize]
     [HttpPost("PostAuctionBid")]
     public async Task<IActionResult> PostAuctionBid([FromBody] Bid bid)
     {
@@ -91,7 +91,7 @@ public class AuctionController : ControllerBase
             //2. Catalog kalder på worker og får de aktive auktioners item
             //4. Catalog giver de auktioner til user
             //5. User viser auktionerne på hjemmesiden.
-
+/*
             var checkAuctionPrice = redisService.GetAuctionPrice(bid.AuctionID);
             //Ser på om auction findes i cache
             if (checkAuctionPrice == -1)
@@ -105,7 +105,7 @@ public class AuctionController : ControllerBase
 
 
             redisService.SetAuctionPrice(bid.AuctionID,bid.BidPrice);
-
+*/
             string message = JsonConvert.SerializeObject(bid);    // Konverterer WorkshopRequest til en JSON-streng.           
             var body = Encoding.UTF8.GetBytes(message);    // Konverterer JSON-strengen til en byte-array.
 
@@ -116,7 +116,6 @@ public class AuctionController : ControllerBase
                                  routingKey: "auction",
                                  basicProperties: null,
                                  body: body);
-
             _logger.LogInformation($"Bid udført: {message}");    // Logger en information om, at WorkshopRequest er tilføjet med WorkshopRequest JSON-strengen.
 
 

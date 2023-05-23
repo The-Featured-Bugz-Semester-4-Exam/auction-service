@@ -147,3 +147,5 @@ C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctio
 C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\runtimes\unix\lib\netcoreapp3.0\System.Drawing.Common.dll
 C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\runtimes\win\lib\netcoreapp3.0\System.Drawing.Common.dll
 C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\runtimes\win\lib\netcoreapp3.0\System.Windows.Extensions.dll
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\Pipelines.Sockets.Unofficial.dll
+C:\Users\jacob\Pictures\The-Featured-Bugz-Semester-4-Exam\auction-service\auctionServiceAPI\bin\Debug\net7.0\StackExchange.Redis.dll
