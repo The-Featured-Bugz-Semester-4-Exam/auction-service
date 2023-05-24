@@ -48,8 +48,6 @@ public class AuctionController : ControllerBase
     public async Task<IActionResult> PostAuction([FromBody] ItemToAuction[]  itemToAuctions){
         _logger.LogInformation("PostAuction");
 
-
-
         for (int i = 0; i < itemToAuctions.Length; i++)
         {
             //Auction
