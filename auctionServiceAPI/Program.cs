@@ -1,7 +1,9 @@
 using auctionServiceAPI.Models;
 using NLog;
 using NLog.Web;
-
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
     var logger =
     NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
@@ -13,6 +15,27 @@ try
 
 
     var builder = WebApplication.CreateBuilder(args);
+    // Konfigurer JWT-validering
+
+
+    string mySecret = "mySecretIsASecret";
+    string myIssuer = "myIssuerIsAnIssue";
+
+    builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = myIssuer,
+                ValidAudience = "http://localhost",
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(mySecret))
+            };
+        });
+
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
 
@@ -33,9 +56,10 @@ try
         app.UseSwagger();
         app.UseSwaggerUI();
 
+    
 
     app.UseHttpsRedirection();
-
+    app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapControllers();

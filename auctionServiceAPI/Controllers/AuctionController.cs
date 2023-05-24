@@ -1,43 +1,34 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using MongoDB.Driver;
 using RabbitMQ.Client;
 using System;
 using System.IO;
 using Newtonsoft.Json;
 using System.Text;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 using auctionServiceAPI.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using auctionServiceAPI.Services;
 namespace auctionServiceAPI.Controllers;
 
 
 [ApiController]
-[Route("[controller]")]
+[Route("api")]
 public class AuctionController : ControllerBase
 {
 
     private readonly ILogger<AuctionController> _logger;
 
-    private string mongodbConnection = string.Empty;
-
-    private readonly IMongoDatabase _database;
-
     private ConnectionFactory factory = new ConnectionFactory();
     private IConnection connection;
     private IModel channel;
 
-    private string auctionActiveCol = string.Empty;
-    private string auctionDoneCol = string.Empty;
+    private RedisService redisService;
 
     public AuctionController(ILogger<AuctionController> logger, IConfiguration configuration)
     {
-        var server = configuration["server"] ?? string.Empty;
-        var port = configuration["port"] ?? string.Empty;
-        var database = configuration["database"] ?? string.Empty;
-        auctionActiveCol = configuration["auctionActiveCol"] ?? string.Empty;
-        auctionDoneCol = configuration["auctionDoneCol"] ?? string.Empty;
-        var connectionString = $"mongodb://{server}:{port}/";
-
-        var client = new MongoClient(connectionString);
-        _database = client.GetDatabase(database);
+       // redisService = new RedisService(configuration);
 
         _logger = logger;
 
@@ -46,110 +37,92 @@ public class AuctionController : ControllerBase
         var _ipaddr = ips.First().MapToIPv4().ToString();
         _logger.LogInformation(1, $"Taxabooking responding from {_ipaddr}");
 
+        var factory = new ConnectionFactory { HostName = configuration["workerUrl"] ?? "localhost" };
+        connection = factory.CreateConnection();
+        channel = connection.CreateModel();
+
+
     }
-    [HttpPost("CreateAuction")]
-    public void PostAuction(Item item)
-    {
+    //[Authorize]
+    [HttpPost("PostAuction/{itemToAuctionList}")]
+    public async Task<IActionResult> PostAuction([FromBody] ItemToAuction[]  itemToAuctions){
+        _logger.LogInformation("PostAuction");
 
-        var collection = _database.GetCollection<Auction>(auctionActiveCol);
-        var highestAuction = collection.Find(_ => true)
-            .SortByDescending(a => a.AuctionID)
-            .FirstOrDefault();
-
-        int nextAuctionId = 1;
-        if (highestAuction != null)
+        for (int i = 0; i < itemToAuctions.Length; i++)
         {
-            nextAuctionId = highestAuction.AuctionID + 1;
+            //Auction
+            redisService.AddAuctionWithCondition(itemToAuctions[i].ItemID,itemToAuctions[i].ItemStartPrice,itemToAuctions[i].ItemEndDate);
         }
-        // Opret den nye auktion med det næste auktions-ID
-        Auction auction = new Auction(nextAuctionId, item, -1);
-        // Indsæt auktionen i MongoDB
-        _database.GetCollection<Auction>(auctionActiveCol).InsertOne(auction);
-
+        return null;
     }
 
 
+  
 
 
-
-
-
-
-    [HttpGet("GetAuctionsActive")]
-    public List<Auction> GetAllAuctionActive()
-    {
-        var collection = _database.GetCollection<Auction>(auctionActiveCol);
-
-        // Udfør forespørgsel for at hente aktive auktioner baseret på dine kriterier
-        var activeAuctions = collection.Find(_ => true).ToList();
-
-        return activeAuctions;
-    }
-    [HttpGet("GetAuctionActive/{auctionId}")]
-    public Auction GetAuctionActive(int auctionId)
-    {
-        var collection = _database.GetCollection<Auction>(auctionActiveCol);
-
-        Auction auction = collection.Find(x => x.AuctionID == auctionId).FirstOrDefault();
-        return auction;
-    }
-    [HttpPost("PostAuctionBid/{auctionBid}")]
-    public IActionResult PostAuctionBid(AuctionBid auctionBid)
+    //[Authorize]
+    [HttpPost("PostAuctionBid")]
+    public async Task<IActionResult> PostAuctionBid([FromBody] Bid bid)
     {
         try
         {
-            _logger.LogInformation("WorkshopRequest oprettet" + StatusCodes.Status200OK,    // Logger en information om, at WorkshopRequest er oprettet, med HTTP status 200 OK og tidspunktet.
-            DateTime.UtcNow.ToLongTimeString());
+            //Kan diskuteres om den skal hente en brugerID eller bare lade en selv bestemme brugerID når man sender.
+            //Kan nok lave noget i postman at når noget bliver udført bliver en variable sat i postman.
 
-            // Exchange(topic_logs) bestemmer, hvilken type meddelelse der sendes til hvilken kø "Repair" eller "Service".
-            channel.ExchangeDeclare(exchange: "topic_logs", ExchangeType.Topic);
-            string message = JsonConvert.SerializeObject(auctionBid);    // Konverterer WorkshopRequest til en JSON-streng.
+
+
+
+
+        
+            //1. Kalder på redis cache
+            //2. Checker om den er null
+            //3. Checker på pris og id/key
+            //4. Return Badrequest eller bool om posten går igennem eller ej
+            //5. Sender til rabbitMQ
+            //6. Worker modtager det og ligger i en database.
+           
+
+
+
+            //Hente en Item/Items
+            //1. User kalder på catalog
+            //2. Catalog kalder på worker og får de aktive auktioners item
+            //4. Catalog giver de auktioner til user
+            //5. User viser auktionerne på hjemmesiden.
+/*
+            var checkAuctionPrice = redisService.GetAuctionPrice(bid.AuctionID);
+            //Ser på om auction findes i cache
+            if (checkAuctionPrice == -1)
+            {
+                return BadRequest("Ugyldigt id");
+            }
+            if (checkAuctionPrice >= bid.BidPrice)
+            {
+                return BadRequest("For lavt bud");
+            }
+
+
+            redisService.SetAuctionPrice(bid.AuctionID,bid.BidPrice);
+*/
+            string message = JsonConvert.SerializeObject(bid);    // Konverterer WorkshopRequest til en JSON-streng.           
             var body = Encoding.UTF8.GetBytes(message);    // Konverterer JSON-strengen til en byte-array.
 
             // ServiceType datatype String skal være "Repair" eller "Service" !!!
+            channel.ExchangeDeclare(exchange: "topic_logs", ExchangeType.Topic);
             channel.BasicPublish(exchange: "topic_logs",
                                  // Sender beskeden til køen, der passer til ServiceType, som kan være "Repair" eller "Service".
-                                 routingKey: "TestWay",
+                                 routingKey: "auction",
                                  basicProperties: null,
                                  body: body);
+            _logger.LogInformation($"Bid udført: {message}");    // Logger en information om, at WorkshopRequest er tilføjet med WorkshopRequest JSON-strengen.
 
-            _logger.LogInformation($"WorkshopRequest added - {message}");    // Logger en information om, at WorkshopRequest er tilføjet med WorkshopRequest JSON-strengen.
 
-            return Ok(message);    // Returnerer HTTP status 200 OK med WorkshopRequest JSON-strengen i responskroppen.
+            return Ok($"{message}");    // Returnerer HTTP status 200 OK med WorkshopRequest JSON-strengen i responskroppen.
         }
-        catch (Exception)    // Håndterer exceptions og logger dem med tidspunktet.
+        catch (Exception ex)    // Håndterer exceptions og logger dem med tidspunktet.
         {
-            _logger.LogInformation("Fejl, WorkshopRequest ikke oprettet",
-            DateTime.UtcNow.ToLongTimeString());
-
-            return null;
+            _logger.LogInformation(ex.Message);         
+            return BadRequest(ex.Message);
         }
-    }
-    [HttpPost("AuctionDone")]
-    public IActionResult AuctionDone()
-    {
-        var collection = _database.GetCollection<Auction>("AuctionCollection");
-        var completedCollection = _database.GetCollection<Auction>("CompletedAuctionCollection");
-
-        var now = DateTime.Now;
-
-        var filter = Builders<Auction>.Filter.Where(a => a.Item.ItemEndDate <= now);
-        var expiredAuctions = collection.Find(_ => true).ToList();
-        _logger.LogInformation("expiredAuctions count: " + expiredAuctions.Count);
-        foreach (var auction in expiredAuctions)
-        {
-            if (auction.Item.ItemEndDate.Ticks <= now.Ticks)
-            {
-
-                // Flyt auktionen til "CompletedAuctionCollection"
-                completedCollection.InsertOne(auction);
-
-                // Slet auktionen fra "AuctionCollection"
-                collection.DeleteOne(a => a.AuctionID == auction.AuctionID);
-            }
-            _logger.LogInformation("auction found EndDate: " + auction.Item.ItemEndDate.ToString() + " DatetimeNow: " + now + "  " + (auction.Item.ItemEndDate.Ticks <= now.Ticks));
-        }
-
-        return Ok();
     }
 }
