@@ -8,12 +8,30 @@ public class RedisService
      private ConnectionMultiplexer redisConnect;
 
      IDatabase redisDb;
-    public RedisService(IConfiguration configuration)
+
+     public RedisService(IConfiguration configuration)
+{
+    string connection = "localhost,abortConnect=false";
+
+    redisConnect = ConnectionMultiplexer.Connect(connection);
+
+    if (!redisConnect.IsConnected)
     {
-        string connection = configuration["redisConnection"] ?? string.Empty;
-        redisConnect =  ConnectionMultiplexer.Connect(connection);
-        redisDb = redisConnect.GetDatabase();
+        throw new Exception("Fejl: Kan ikke oprette forbindelse til Redis.");
     }
+
+    redisDb = redisConnect.GetDatabase();
+}
+    /*public RedisService(IConfiguration configuration)
+    {
+       // string connection = configuration["redisConnection"] ?? string.Empty;
+        string connection = "localhost,abortConnect=false";
+
+       // connection = "localhost";
+        //redisConnect =  ConnectionMultiplexer.Connect("server1:6379");
+        Console.WriteLine("Connection " + redisConnect.ToString());
+        redisDb = redisConnect.GetDatabase();
+    }*/
     public int GetAuctionPrice(int id){
         
        int bidPrice = (int)redisDb.StringGet(id.ToString());

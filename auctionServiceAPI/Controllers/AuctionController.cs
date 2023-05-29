@@ -10,6 +10,8 @@ using auctionServiceAPI.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using auctionServiceAPI.Services;
+using Microsoft.AspNetCore.Http.Features;
+using System.Diagnostics;
 namespace auctionServiceAPI.Controllers;
 
 
@@ -28,14 +30,14 @@ public class AuctionController : ControllerBase
 
     public AuctionController(ILogger<AuctionController> logger, IConfiguration configuration)
     {
-       // redisService = new RedisService(configuration);
+       redisService = new RedisService(configuration);
 
         _logger = logger;
 
         var hostName = System.Net.Dns.GetHostName();
         var ips = System.Net.Dns.GetHostAddresses(hostName);
         var _ipaddr = ips.First().MapToIPv4().ToString();
-        _logger.LogInformation(1, $"Taxabooking responding from {_ipaddr}");
+        _logger.LogInformation(1, $"AuctionService responding from {_ipaddr}");
 
         var factory = new ConnectionFactory { HostName = configuration["workerUrl"] ?? "localhost" };
         connection = factory.CreateConnection();
@@ -43,67 +45,90 @@ public class AuctionController : ControllerBase
 
 
     }
-    //[Authorize]
-    [HttpPost("PostAuction/{itemToAuctionList}")]
-    public async Task<IActionResult> PostAuction([FromBody] ItemToAuction[]  itemToAuctions){
-        _logger.LogInformation("PostAuction");
+    
+[HttpGet("loadbalancer")]
+public IActionResult LoadBalancer()
+{
+    // Implementer din logik til belastningsfordeling her
+    // Dette kan omfatte oprettelse af en load balancer-session, valg af en instans af Auction Service, osv.
 
-        for (int i = 0; i < itemToAuctions.Length; i++)
+    // Returner information om den valgte Auction Service-instans
+    var properties = new Dictionary<string, string>();
+    properties.Add("service", "Auction Service");
+
+    // Tilføj andre relevante oplysninger om instansen, f.eks. IP-adresse, version osv.
+    var hostName = System.Net.Dns.GetHostName();
+    var ips = System.Net.Dns.GetHostAddresses(hostName);
+    var ipa = ips.First().MapToIPv4().ToString();
+    properties.Add("ip-address", ipa);
+    
+    return Ok(properties);
+}
+
+
+
+    [HttpPost("postAuctions")]
+public async Task<IActionResult> PostAuction([FromBody] ItemToAuction[] itemToAuctions)
+{
+    string itemsCreated = "The following items is created: ";
+    string itemsAlreadyExist = "The following items does already exist: ";
+
+    for (int i = 0; i < itemToAuctions.Length; i++)
+    {
+        if (redisService.CheckAuctionExist(itemToAuctions[i].ItemID) == false)
         {
-            //Auction
-            redisService.AddAuctionWithCondition(itemToAuctions[i].ItemID,itemToAuctions[i].ItemStartPrice,itemToAuctions[i].ItemEndDate);
+            itemsCreated += itemToAuctions[i].ItemID.ToString() + " ";
         }
-        return null;
+        if(redisService.CheckAuctionExist(itemToAuctions[i].ItemID) == true)
+        {
+            itemsAlreadyExist += itemToAuctions[i].ItemID.ToString() + " "; 
+        }
+        
+        redisService.AddAuctionWithCondition(itemToAuctions[i].ItemID, itemToAuctions[i].ItemStartPrice, itemToAuctions[i].ItemEndDate);
     }
+    _logger.LogInformation("Auction creation summary: {ItemsCreated} {ItemsAlreadyExist}", itemsCreated, itemsAlreadyExist);
 
+    //_logger.LogInformation($"The following items {} is created and the following items does already exist {itemsAlreadyExist}).");
+    return Ok($"{itemsCreated} \n{itemsAlreadyExist}" );
+}
 
-  
+    [HttpGet("GetAuctionPrice/{id}")]
+        public async Task<IActionResult> GetAuctionPrice(int id)
+        {
+            var checkAuctionPrice = redisService.GetAuctionPrice(id);
+            //Ser på om auction findes i cache
+            if (checkAuctionPrice == -1)
+            {
+                _logger.LogError("Auction not found for AuctionID: {AuctionID}", id);
+                return BadRequest("Ugyldigt id");
+            }
 
+            _logger.LogInformation("Auction price retrieved for AuctionID: {AuctionID}. Price: {AuctionPrice}", id, checkAuctionPrice);
+            return Ok(checkAuctionPrice);
+        }
 
     //[Authorize]
     [HttpPost("PostAuctionBid")]
     public async Task<IActionResult> PostAuctionBid([FromBody] Bid bid)
     {
         try
+        {  
+        var checkAuctionPrice = redisService.GetAuctionPrice(bid.AuctionID);
+        // Ser på om auktionen findes i cache
+        if (checkAuctionPrice == -1)
         {
-            //Kan diskuteres om den skal hente en brugerID eller bare lade en selv bestemme brugerID når man sender.
-            //Kan nok lave noget i postman at når noget bliver udført bliver en variable sat i postman.
-
-
-
-
-
+            _logger.LogWarning($"User with ID {bid.BidUserID} placed a bid on a non-existing auction (AuctionID: {bid.AuctionID}).");
+            return BadRequest("Ugyldigt id");
+        }
         
-            //1. Kalder på redis cache
-            //2. Checker om den er null
-            //3. Checker på pris og id/key
-            //4. Return Badrequest eller bool om posten går igennem eller ej
-            //5. Sender til rabbitMQ
-            //6. Worker modtager det og ligger i en database.
-           
-
-
-
-            //Hente en Item/Items
-            //1. User kalder på catalog
-            //2. Catalog kalder på worker og får de aktive auktioners item
-            //4. Catalog giver de auktioner til user
-            //5. User viser auktionerne på hjemmesiden.
-/*
-            var checkAuctionPrice = redisService.GetAuctionPrice(bid.AuctionID);
-            //Ser på om auction findes i cache
-            if (checkAuctionPrice == -1)
-            {
-                return BadRequest("Ugyldigt id");
-            }
-            if (checkAuctionPrice >= bid.BidPrice)
-            {
-                return BadRequest("For lavt bud");
-            }
-
+        if (checkAuctionPrice >= bid.BidPrice)
+        {
+            _logger.LogWarning($"User with ID {bid.BidUserID} placed a bid of {bid.BidPrice}, which is below or equal to the current auction price of {checkAuctionPrice}.");
+            return BadRequest("For lavt bud");
+        }
 
             redisService.SetAuctionPrice(bid.AuctionID,bid.BidPrice);
-*/
+
             string message = JsonConvert.SerializeObject(bid);    // Konverterer WorkshopRequest til en JSON-streng.           
             var body = Encoding.UTF8.GetBytes(message);    // Konverterer JSON-strengen til en byte-array.
 
@@ -114,15 +139,16 @@ public class AuctionController : ControllerBase
                                  routingKey: "auction",
                                  basicProperties: null,
                                  body: body);
-            _logger.LogInformation($"Bid udført: {message}");    // Logger en information om, at WorkshopRequest er tilføjet med WorkshopRequest JSON-strengen.
+
+            _logger.LogInformation($"{message}");    // Logger en information om, at WorkshopRequest er tilføjet med WorkshopRequest JSON-strengen.
 
 
             return Ok($"{message}");    // Returnerer HTTP status 200 OK med WorkshopRequest JSON-strengen i responskroppen.
         }
         catch (Exception ex)    // Håndterer exceptions og logger dem med tidspunktet.
         {
-            _logger.LogInformation(ex.Message);         
-            return BadRequest(ex.Message);
+            _logger.LogError(ex, "Fejl under håndtering af AuctionBid");
+            return BadRequest("Der opstod en fejl under håndtering af AuctionBid.");
         }
     }
 }
