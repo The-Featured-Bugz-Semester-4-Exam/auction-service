@@ -11,7 +11,7 @@
 
     <AssemblyVersion>1.0.1.1</AssemblyVersion>
     <Company> The Featured Bugz </Company>
-    <FileVersion>0.6.0</FileVersion>
+    <FileVersion>1.0.0</FileVersion>
     <Description>
     0.1.0 Setup til at kunne lave auction-service
     0.1.1 Første models klasser
