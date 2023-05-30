@@ -103,6 +103,9 @@ public class AuctionController : ControllerBase
             //4. Catalog giver de auktioner til user
             //5. User viser auktionerne på hjemmesiden.
             var checkAuctionPrice = redisService.GetAuctionPrice(bid.AuctionID);
+
+
+            _logger.LogInformation(checkAuctionPrice + "    " + bid.AuctionID + "   ");
             //Ser på om auction findes i cache
             if (checkAuctionPrice == -1)
             {

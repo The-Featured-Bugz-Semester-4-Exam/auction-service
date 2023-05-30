@@ -13,8 +13,18 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute(" The Featured Bugz ")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyCopyrightAttribute("Gutterne")]
-[assembly: System.Reflection.AssemblyDescriptionAttribute("TimerTick lavet, dog mangler api til kommunikation til worker.")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute(" 0.1.2 ")]
+[assembly: System.Reflection.AssemblyDescriptionAttribute(@"
+    0.1.0 Setup til at kunne lave auction-service
+    0.1.1 Første models klasser
+    0.1.2 Models klasser ændring
+    0.2.0 Har forbindelse med MongoDB
+    0.2.1 Api'er til mongoDB
+    0.3.0 Timertick klassen tilføjet, men ikke brugt
+    0.4.0 MongodDB slettet fra auctionServiceAPI.
+    0.5.0 Lavet NLog og Loki 
+    0.6.0 Kan sendes op til Docker desktop
+    ")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute(" 0.6.0 ")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
 [assembly: System.Reflection.AssemblyProductAttribute("auctionServiceAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("auctionServiceAPI")]

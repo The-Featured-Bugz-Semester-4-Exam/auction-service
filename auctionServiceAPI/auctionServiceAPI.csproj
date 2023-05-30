@@ -11,8 +11,18 @@
 
     <AssemblyVersion>1.0.1.1</AssemblyVersion>
     <Company> The Featured Bugz </Company>
-    <FileVersion> 0.1.2 </FileVersion>
-    <Description>TimerTick lavet, dog mangler api til kommunikation til worker.</Description>
+    <FileVersion> 0.6.0 </FileVersion>
+    <Description>
+    0.1.0 Setup til at kunne lave auction-service
+    0.1.1 Første models klasser
+    0.1.2 Models klasser ændring
+    0.2.0 Har forbindelse med MongoDB
+    0.2.1 Api'er til mongoDB
+    0.3.0 Timertick klassen tilføjet, men ikke brugt
+    0.4.0 MongodDB slettet fra auctionServiceAPI.
+    0.5.0 Lavet NLog og Loki 
+    0.6.0 Kan sendes op til Docker desktop
+    </Description>
   </PropertyGroup>
 
   <ItemGroup>
