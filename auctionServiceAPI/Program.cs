@@ -17,7 +17,7 @@ try
     var builder = WebApplication.CreateBuilder(args);
     // Konfigurer JWT-validering
 
-
+    string myValidAudience = Environment.GetEnvironmentVariable("ValidAudience") ?? "http://localhost";
     string mySecret = "mySecretIsASecret";
     string myIssuer = "myIssuerIsAnIssue";
 
@@ -28,10 +28,10 @@ try
             {
                 ValidateIssuer = true,
                 ValidateAudience = true,
-                ValidateLifetime = true,
+                ValidateLifetime = false,
                 ValidateIssuerSigningKey = true,
                 ValidIssuer = myIssuer,
-                ValidAudience = "http://localhost",
+                ValidAudience = myValidAudience,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(mySecret))
             };
         });

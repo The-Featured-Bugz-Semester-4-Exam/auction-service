@@ -30,22 +30,25 @@ public class AuctionController : ControllerBase
 
     public AuctionController(ILogger<AuctionController> logger, IConfiguration configuration)
     {
+        _logger = logger;
+
+        _logger.LogInformation("redisService cache connection: " + configuration["redisConnection"]);
        redisService = new RedisService(configuration);
 
-        _logger = logger;
 
         var hostName = System.Net.Dns.GetHostName();
         var ips = System.Net.Dns.GetHostAddresses(hostName);
         var _ipaddr = ips.First().MapToIPv4().ToString();
         _logger.LogInformation(1, $"AuctionService responding from {_ipaddr}");
 
-        var factory = new ConnectionFactory { HostName = configuration["workerUrl"] ?? "localhost" };
+        _logger.LogInformation("Laver connection til rabbitmq med: " + configuration["rabbitmqUrl"] + ":" + configuration["rabbitmqPort"]);
+        var factory = new ConnectionFactory { HostName = configuration["rabbitmqUrl"] ?? "localhost", Port = Convert.ToInt16(configuration["rabbitmqPort"]) };
         connection = factory.CreateConnection();
         channel = connection.CreateModel();
 
 
     }
-    
+    /*
 [HttpGet("loadbalancer")]
 public IActionResult LoadBalancer()
 {
@@ -64,7 +67,7 @@ public IActionResult LoadBalancer()
     
     return Ok(properties);
 }
-
+*/
 
 
     [HttpPost("postAuctions")]
@@ -107,7 +110,7 @@ public async Task<IActionResult> PostAuction([FromBody] ItemToAuction[] itemToAu
             return Ok(checkAuctionPrice);
         }
 
-    //[Authorize]
+    [Authorize]
     [HttpPost("PostAuctionBid")]
     public async Task<IActionResult> PostAuctionBid([FromBody] Bid bid)
     {
