@@ -16,7 +16,7 @@ namespace auctionServiceAPI.Controllers;
 
 
 [ApiController]
-[Route("api")]
+[Route("[controller]")]
 public class AuctionController : ControllerBase
 {
 
