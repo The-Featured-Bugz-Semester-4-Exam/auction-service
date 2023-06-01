@@ -45,7 +45,8 @@ public class AuctionController : ControllerBase
         {
             // Connecting to RabbitMQ
             _logger.LogInformation("INFO: Connect to rabbitMQ configuration: " + configuration["rabbitmqUrl"] + ":" + configuration["rabbitmqPort"]);
-             factory = new ConnectionFactory() { 
+            factory = new ConnectionFactory()
+            {
                 HostName = configuration["rabbitmqUrl"] ?? "localhost",
                 Port = Convert.ToInt16(configuration["rabbitmqPort"] ?? "5672"),
                 UserName = configuration["rabbitmqUsername"] ?? "guest",
@@ -54,11 +55,16 @@ public class AuctionController : ControllerBase
             };
             connection = factory.CreateConnection();
             channel = connection.CreateModel();
-            
+            channel.QueueDeclare(queue: "auction",
+                     durable: false,
+                     exclusive: false,
+                     autoDelete: false,
+                     arguments: null);
+
         }
         catch (System.Exception ex)
         {
-            _logger.LogError(ex,"FAILED: Connect to rabbitMQ configuration: " + configuration["rabbitmqUrl"] + ":" + configuration["rabbitmqPort"]);
+            _logger.LogError(ex, "FAILED: Connect to rabbitMQ configuration: " + configuration["rabbitmqUrl"] + ":" + configuration["rabbitmqPort"]);
             throw;
         }
     }
@@ -152,11 +158,10 @@ public class AuctionController : ControllerBase
             var body = Encoding.UTF8.GetBytes(message);
 
             // Publishing the bid to RabbitMQ for further processing
-            channel.ExchangeDeclare(exchange: "topic_logs", ExchangeType.Topic);
-            channel.BasicPublish(exchange: "topic_logs",
-                                 routingKey: "auction",
-                                 basicProperties: null,
-                                 body: body);
+            channel.BasicPublish(exchange: string.Empty,
+                        routingKey: "auction",
+                        basicProperties: null,
+                        body: body);
 
             _logger.LogInformation($"{message}");
             return Ok($"{message}");
