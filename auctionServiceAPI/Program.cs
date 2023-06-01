@@ -5,18 +5,15 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
-    var logger =
-    NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
-    logger.Debug("init main");
+// Setting up NLog logger
+var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+
 try
 {
- //   var timerTick = new TimerTick();
-  //  timerTick.Start();
-
-
+    // Creating a new WebApplication instance
     var builder = WebApplication.CreateBuilder(args);
-    // Konfigurer JWT-validering
 
+    // Configuring JWT authentication
     string myValidAudience = Environment.GetEnvironmentVariable("ValidAudience") ?? "http://localhost";
     string mySecret = "mySecretIsASecret";
     string myIssuer = "myIssuerIsAnIssue";
@@ -36,45 +33,37 @@ try
             };
         });
 
+    // Clearing existing logging providers and configuring NLog
     builder.Logging.ClearProviders();
     builder.Host.UseNLog();
 
-
-
-
-    // Add services to the container.
-
     builder.Services.AddControllers();
-    // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
     builder.Services.AddEndpointsApiExplorer();
     builder.Services.AddSwaggerGen();
 
-
     var app = builder.Build();
 
-
-        app.UseSwagger();
-        app.UseSwaggerUI();
-
-    
+    app.UseSwagger();
+    app.UseSwaggerUI();
 
     app.UseHttpsRedirection();
+
+    // Enabling authentication and authorization middleware
     app.UseAuthentication();
     app.UseAuthorization();
 
     app.MapControllers();
 
     app.Run();
-    
 }
-catch (System.Exception ex )
+catch (System.Exception ex)
 {
+    // Logging the exception and re-throwing it
     logger.Error(ex, "Stopped program because of exception");
     throw;
-    
 }
-finally 
+finally
 {
+    // Shutting down the NLog logger
     NLog.LogManager.Shutdown();
 }
-

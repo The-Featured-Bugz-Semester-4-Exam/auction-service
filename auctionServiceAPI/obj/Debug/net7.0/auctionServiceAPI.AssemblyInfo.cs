@@ -23,8 +23,9 @@ using System.Reflection;
     0.4.0 MongodDB slettet fra auctionServiceAPI.
     0.5.0 Lavet NLog og Loki 
     0.6.0 Kan sendes op til Docker desktop
+    1.0.0 Første version til dockerhub
     ")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("0.6.0")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0")]
 [assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
 [assembly: System.Reflection.AssemblyProductAttribute("auctionServiceAPI")]
 [assembly: System.Reflection.AssemblyTitleAttribute("auctionServiceAPI")]

@@ -12,7 +12,7 @@ public class RedisService
     public RedisService(IConfiguration configuration)
     {
 
-        string connection = configuration["redisConnection"] ?? string.Empty;
+        string connection = configuration["redisConnection"] ?? "localhost";
 
         redisConnect = ConnectionMultiplexer.Connect(connection);
 
