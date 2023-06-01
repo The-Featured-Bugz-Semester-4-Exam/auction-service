@@ -41,12 +41,26 @@ public class AuctionController : ControllerBase
         var ips = System.Net.Dns.GetHostAddresses(hostName);
         var _ipaddr = ips.First().MapToIPv4().ToString();
         _logger.LogInformation(1, $"auction-service responding from {_ipaddr}");
+        try
+        {
+            // Connecting to RabbitMQ
+            _logger.LogInformation("INFO: Connect to rabbitMQ configuration: " + configuration["rabbitmqUrl"] + ":" + configuration["rabbitmqPort"]);
+             factory = new ConnectionFactory() { 
+                HostName = configuration["rabbitmqUrl"] ?? "localhost",
+                Port = Convert.ToInt16(configuration["rabbitmqPort"] ?? "5672"),
+                UserName = configuration["rabbitmqUsername"] ?? "guest",
+                Password = configuration["rabbitmqUserpassword"] ?? "guest"
 
-        // Connecting to RabbitMQ
-        _logger.LogInformation("Connect to rabbitMQ: " + configuration["rabbitmqUrl"] + ":" + configuration["rabbitmqPort"]);
-        var factory = new ConnectionFactory { HostName = configuration["rabbitmqUrl"] ?? "localhost", Port = Convert.ToInt16(configuration["rabbitmqPort"]) };
-        connection = factory.CreateConnection();
-        channel = connection.CreateModel();
+            };
+            connection = factory.CreateConnection();
+            channel = connection.CreateModel();
+            
+        }
+        catch (System.Exception ex)
+        {
+            _logger.LogError(ex,"FAILED: Connect to rabbitMQ configuration: " + configuration["rabbitmqUrl"] + ":" + configuration["rabbitmqPort"]);
+            throw;
+        }
     }
 
     // Endpoint to get the version information of the API
